@@ -1,7 +1,7 @@
-dep_gtk3 = dependency('gtk+-3.0', version: '>=3.24')
+dep_gtk4 = dependency('gtk4')
 dep_x11 = dependency('x11')
 
-gtk_dependencies = dependencies + [dep_gtk3, dep_x11]
+gtk_dependencies = dependencies + [dep_gtk4, dep_x11]
 
 desmume_src = [
   'avout_pipe_base.cpp',
