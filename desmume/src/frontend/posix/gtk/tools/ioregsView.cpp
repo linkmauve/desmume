@@ -68,11 +68,11 @@ static reg_t *current_reg[2] = {NULL, NULL};
 	char _bit_check_buf[64]; \
 	snprintf(_bit_check_buf, ARRAY_SIZE(_bit_check_buf), "Bit %d: %s", n,s); \
 	_wl_[w] = gtk_check_button_new_with_label(_bit_check_buf ); \
-	gtk_box_pack_start(GTK_BOX(mBox0[c]), _wl_[w], FALSE, FALSE, 0); }
+	gtk_box_prepend(GTK_BOX(mBox0[c]), _wl_[w]); }
 
 #define BIT_COMBO(w,n,s) { \
 	_wl_[w] = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0); \
-	gtk_box_pack_start(GTK_BOX(mBox0[c]), _wl_[w], FALSE, FALSE, 0); } \
+	gtk_box_prepend(GTK_BOX(mBox0[c]), _wl_[w]); } \
 	char _bit_combo_buf[64]; \
 	snprintf(_bit_combo_buf, ARRAY_SIZE(_bit_combo_buf), "Bits %s: %s", n,s); \
 	GtkWidget *__combo_lbl_tmp = gtk_label_new(_bit_combo_buf); \
@@ -84,8 +84,8 @@ static reg_t *current_reg[2] = {NULL, NULL};
 #define BIT_COMBO_GET(w) (GTK_WIDGET(g_list_first(gtk_container_get_children(GTK_CONTAINER(_wl_[w])))->data))
 	
 #define BIT_COMBO_END(w) \
-	gtk_box_pack_start(GTK_BOX(_wl_[w]), __combo_tmp, FALSE, FALSE, 0); \
-	gtk_box_pack_start(GTK_BOX(_wl_[w]), __combo_lbl_tmp, FALSE, FALSE, 0);
+	gtk_box_prepend(GTK_BOX(_wl_[w]), __combo_tmp); \
+	gtk_box_prepend(GTK_BOX(_wl_[w]), __combo_lbl_tmp);
 
 #define CREA_END() \
 	gtk_widget_show_all(mWin[c]);
@@ -384,7 +384,7 @@ static void selected_reg(GtkWidget* widget, gpointer data)
 
 	current_reg[c] = (reg_t*)&(GET_REG_LIST(c)[active]);
 
-// 	gtk_box_pack_start(GTK_BOX(mBox0[c]), mIoRegCombo[c], FALSE, FALSE, 0);
+// 	gtk_box_prepend(GTK_BOX(mBox0[c]), mIoRegCombo[c]);
 	
 	switch (current_reg[c]->size) {
 	case BITS_8:
@@ -396,7 +396,7 @@ static void selected_reg(GtkWidget* widget, gpointer data)
 	default:
 		regInfosBuffer = g_strdup_printf("0x%08X", current_reg[c]->value(c));
 	}	
-// 	gtk_box_pack_start(GTK_BOX(mBox0[c]), mRegInfos[c], FALSE, FALSE, 0);
+// 	gtk_box_prepend(GTK_BOX(mBox0[c]), mRegInfos[c]);
 	gtk_label_set_label(GTK_LABEL(mRegInfos[c]), regInfosBuffer);
 	g_free(regInfosBuffer);
 
@@ -471,8 +471,8 @@ static void open(int ID)
 		gtk_combo_box_set_active(GTK_COMBO_BOX(mIoRegCombo[c]), 0);
 		g_signal_connect(G_OBJECT(mIoRegCombo[c]), "changed", G_CALLBACK(selected_reg), GINT_TO_POINTER(c));
 
-		gtk_box_pack_start(GTK_BOX(mBox0[c]), mIoRegCombo[c], FALSE, FALSE, 0);
-		gtk_box_pack_start(GTK_BOX(mBox0[c]), mRegInfos[c], FALSE, FALSE, 0);
+		gtk_box_prepend(GTK_BOX(mBox0[c]), mIoRegCombo[c]);
+		gtk_box_prepend(GTK_BOX(mBox0[c]), mRegInfos[c]);
 		selected_reg(mIoRegCombo[c], GINT_TO_POINTER(c));
 
 		gtk_widget_show_all(mWin[c]);

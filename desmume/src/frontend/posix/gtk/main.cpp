@@ -2668,7 +2668,7 @@ static void SetAudioVolume(GSimpleAction *action, GVariant *parameter, gpointer 
 	scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, SDL_MIX_MAXVOLUME, 1);
 	gtk_range_set_value(GTK_RANGE(scale), SNDSDLGetAudioVolume());
 	g_signal_connect(G_OBJECT(scale), "value-changed", G_CALLBACK(CallbackSetAudioVolume), NULL);
-	gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), scale, TRUE, FALSE, 0);
+	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), scale);
 	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(dialog)));
 	switch(gtk_dialog_run(GTK_DIALOG(dialog)))
 	{
@@ -2706,8 +2706,8 @@ static void SetFirmwareLanguage(GSimpleAction *action, GVariant *parameter, gpoi
 	check_button = gtk_check_button_new_with_mnemonic("_Enable command line overriding");
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button), config.command_line_overriding_firmware_language);
 	g_signal_connect(G_OBJECT(check_button), "toggled", G_CALLBACK(CallbackSetFirmwareLanguage), combo_box_text);
-	gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), check_button, TRUE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), combo_box_text, TRUE, FALSE, 0);
+	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), check_button);
+	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), combo_box_text);
 	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(dialog)));
 	switch(gtk_dialog_run(GTK_DIALOG(dialog)))
 	{
@@ -2760,7 +2760,7 @@ static void Modify_Key(GtkWidget* widget, gpointer data)
 
     ctx.label = gtk_label_new(Title);
     g_free(Title);
-    gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label, TRUE, FALSE, 0);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label);
 
     g_signal_connect(G_OBJECT(mkDialog), "key_press_event", G_CALLBACK(AcceptNewInputKey), &ctx);
 
@@ -2804,7 +2804,7 @@ static void Edit_Controls(GSimpleAction *action, GVariant *parameter, gpointer u
         ecKey = gtk_button_new_with_label(Key_Label);
         g_free(Key_Label);
         g_signal_connect(G_OBJECT(ecKey), "clicked", G_CALLBACK(Modify_Key), GINT_TO_POINTER(i));
-        gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey,TRUE, FALSE, 0);
+        gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey);
     }
 
     gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog)));
@@ -2855,7 +2855,7 @@ static void Modify_JoyKey(GtkWidget* widget, gpointer data)
 
     ctx.label = gtk_label_new(Title);
     g_free(Title);
-    gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label, TRUE, FALSE, 0);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label);
     gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog)));
 
     g_signal_connect(G_OBJECT(mkDialog), "focus_in_event", G_CALLBACK(AcceptNewJoyKey), &ctx);
@@ -2891,21 +2891,21 @@ static void EmulationSettingsDialog(GSimpleAction *action, GVariant *parameter, 
 			NULL);
 
     esKey=gtk_label_new("CPU Mode:\n");
-    gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey,TRUE, FALSE, 0);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey);
 
 	esKey=gtk_check_button_new_with_label("Use dynamic recompiler");
 	gtk_toggle_button_set_active((GtkToggleButton*)esKey,config.use_jit);
 	g_signal_connect(G_OBJECT(esKey),"clicked",G_CALLBACK(ToggleJIT),GINT_TO_POINTER(0));
-    gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey,TRUE, FALSE, 0);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey);
 
     esKey=gtk_label_new("Block Size (1 - accuracy, 100 - fastest):");
-    gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey,TRUE, FALSE, 0);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey);
 
     GtkAdjustment* JITBlockSizeAdjustment=(GtkAdjustment*)gtk_adjustment_new(config.jit_max_block_size,1,100,1,5,0);
     esKey=gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, JITBlockSizeAdjustment);
     gtk_scale_set_digits((GtkScale*)esKey,0);
     g_signal_connect(G_OBJECT(JITBlockSizeAdjustment),"value_changed",G_CALLBACK(JITMaxBlockSizeChanged),NULL);
-    gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey,TRUE, FALSE, 0);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey);
 
     esKey=gtk_label_new(
     		"Enabling this will get you 0-50% speedups. It is optional because it\n"
@@ -2915,7 +2915,7 @@ static void EmulationSettingsDialog(GSimpleAction *action, GVariant *parameter, 
     		"\n"
     		"This should not be assumed to be deterministic."
     		);
-    gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey,TRUE, FALSE, 0);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey);
 
 	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(esDialog)));
 
@@ -2969,7 +2969,7 @@ static void Edit_Joystick_Controls(GSimpleAction *action, GVariant *parameter, g
         ecKey = gtk_button_new_with_label(Key_Label);
         g_free(Key_Label);
         g_signal_connect(G_OBJECT(ecKey), "clicked", G_CALLBACK(Modify_JoyKey), GINT_TO_POINTER(i));
-        gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey,TRUE, FALSE, 0);
+        gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey);
     }
 
     gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog)));
@@ -3007,7 +3007,7 @@ static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, g
 	GtkBuilder *builder = gtk_builder_new_from_string(graphics_settings, -1);
 	wBox = GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(gsDialog)));
 	wGrid = GTK_GRID(gtk_builder_get_object(builder, "graphics_grid"));
-	gtk_box_pack_start(wBox, GTK_WIDGET(wGrid), TRUE, FALSE, 0);
+	gtk_box_prepend(wBox, GTK_WIDGET(wGrid));
 	coreCombo = GTK_COMBO_BOX(gtk_builder_get_object(builder, "core_combo"));
 	wScale = GTK_COMBO_BOX(gtk_builder_get_object(builder, "scale"));
 	wMultisample = GTK_COMBO_BOX(gtk_builder_get_object(builder, "multisample"));
@@ -4400,7 +4400,7 @@ common_gtk_main(GApplication *app, gpointer user_data)
     /* Status bar */
     pStatusBar = gtk_statusbar_new();
     UpdateStatusBar(EMU_DESMUME_NAME_AND_VERSION());
-    gtk_box_pack_end(GTK_BOX(pBox), pStatusBar, FALSE, FALSE, 0);
+    gtk_box_append(GTK_BOX(pBox), pStatusBar);
 
     gtk_widget_show_all(pWindow);
 
