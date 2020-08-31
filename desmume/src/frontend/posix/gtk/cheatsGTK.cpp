@@ -309,17 +309,17 @@ static GtkWidget *cheat_list_create_ui()
     GtkWidget *hbbox = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
     GtkWidget *button;
   
-    gtk_container_add(GTK_CONTAINER(box), GTK_WIDGET(tree));
-    gtk_container_add(GTK_CONTAINER(box), GTK_WIDGET(hbbox));
-    gtk_container_add(GTK_CONTAINER(win), GTK_WIDGET(box));
+    gtk_box_append(GTK_BOX(box), tree);
+    gtk_box_append(GTK_BOX(box), hbbox);
+    gtk_window_set_child(GTK_WINDOW(win), box);
 
     button = gtk_button_new_with_label("add cheat");
     g_signal_connect (button, "clicked", G_CALLBACK (cheat_list_add_cheat), store);
-    gtk_container_add(GTK_CONTAINER(hbbox),button);
+    gtk_box_append(GTK_BOX(hbbox), button);
 
     button = gtk_button_new_with_label("Remove cheat");
     g_signal_connect (button, "clicked", G_CALLBACK (cheat_list_remove_cheat), tree);
-    gtk_container_add(GTK_CONTAINER(hbbox),button);
+    gtk_box_append(GTK_BOX(hbbox), button);
 
     cheat_list_add_columns(GTK_TREE_VIEW(tree), store);
     
@@ -356,17 +356,17 @@ static void cheat_search_create_ui()
     GtkWidget *hbbox = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
     GtkWidget *b;
     
-    gtk_container_add(GTK_CONTAINER(win), GTK_WIDGET(box));
+    gtk_window_set_child(GTK_WINDOW(win), box);
 
     {
         b = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
-        gtk_container_add(GTK_CONTAINER(box), GTK_WIDGET(b));
+        gtk_box_append(GTK_BOX(box), b);
 
         {
             GtkTreeModel * size_model;
             GtkWidget *w;
             w = gtk_label_new("size");
-            gtk_container_add(GTK_CONTAINER(b), w);
+            gtk_box_append(GTK_BOX(b), w);
 
             size_model = create_numbers_model();
 
@@ -378,16 +378,16 @@ static void cheat_search_create_ui()
                             "text", COLUMN_SIZE_TEXT,
                             NULL);
             gtk_combo_box_set_active (GTK_COMBO_BOX (w), 0);
-            gtk_container_add(GTK_CONTAINER(b), w);
+            gtk_box_append(GTK_BOX(b), w);
         }
 
         b = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
-        gtk_container_add(GTK_CONTAINER(box), GTK_WIDGET(b));
+        gtk_box_append(GTK_BOX(box), b);
 
         {
             GtkWidget *w;
             w = gtk_label_new("signedness");
-            gtk_container_add(GTK_CONTAINER(b), w);
+            gtk_box_append(GTK_BOX(b), w);
 
 //            m = create_sign_model();
 
@@ -401,24 +401,24 @@ static void cheat_search_create_ui()
 //                            "text", COLUMN_SIZE_TEXT,
 //                            NULL);
             gtk_combo_box_set_active (GTK_COMBO_BOX (w), 0);
-            gtk_container_add(GTK_CONTAINER(b), w);
+            gtk_box_append(GTK_BOX(b), w);
         }
     }
 
     // BUTTONS:
 
-    gtk_container_add(GTK_CONTAINER(box), GTK_WIDGET(hbbox));
+    gtk_box_append(GTK_BOX(box), hbbox);
 
     button = gtk_button_new_with_label("add cheats");
 //    g_signal_connect (button, "clicked", g_callback (cheat_list_add_cheat), store);
-    gtk_container_add(GTK_CONTAINER(hbbox),button);
+    gtk_box_append(GTK_BOX(hbbox), button);
 
     button = gtk_button_new_with_label("search");
 //    g_signal_connect (button, "clicked", g_callback (cheat_list_add_cheat), store);
-    gtk_container_add(GTK_CONTAINER(hbbox),button);
+    gtk_box_append(GTK_BOX(hbbox), button);
 
 //    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
-//    gtk_container_add(GTK_CONTAINER(win), GTK_WIDGET(box));
+//    gtk_window_set_child(GTK_WINDOW(win), box);
 }
 
 static void cheatSearchEnd()

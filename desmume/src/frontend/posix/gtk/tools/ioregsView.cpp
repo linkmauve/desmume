@@ -367,7 +367,8 @@ static void _clearContainer(GtkWidget *widget, gpointer data)
 	if(widget == mRegInfos[0] || widget == mRegInfos[1]) return;
 	if(widget == mIoRegCombo[0] || widget == mIoRegCombo[1]) return;
 
-	gtk_container_remove(GTK_CONTAINER((GtkWidget*)data), widget);
+	// XXX:
+	//gtk_container_remove(GTK_CONTAINER((GtkWidget*)data), widget);
 //	gtk_widget_destroy(widget);
 //	gtk_object_destroy(GTK_OBJECT(widget));
 }
@@ -455,7 +456,7 @@ static void open(int ID)
 		g_signal_connect(G_OBJECT(mWin[c]), "destroy", G_CALLBACK(&_closeOne), GINT_TO_POINTER(c));
 
 		mBox0[c] = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-		gtk_container_add(GTK_CONTAINER(mWin[c]), mBox0[c]);
+		gtk_window_set_child(GTK_WINDOW(mWin[c]), mBox0[c]);
 
 		mIoRegCombo[c] = gtk_combo_box_text_new();
 		mRegInfos[c] = gtk_label_new("");

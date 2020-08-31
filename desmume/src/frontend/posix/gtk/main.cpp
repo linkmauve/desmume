@@ -4049,12 +4049,12 @@ common_gtk_main(GApplication *app, gpointer user_data)
 
     /* Create the GtkBox */
     pBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(pWindow), pBox);
+    gtk_window_set_child(GTK_WINDOW(pWindow), pBox);
 
     /* Create the toolbar */
     GtkBuilder *builder = gtk_builder_new_from_string(toolbar, -1);
     pToolBar = GTK_WIDGET(gtk_builder_get_object(builder, "toolbar"));
-    gtk_container_add(GTK_CONTAINER(pBox), pToolBar);
+    gtk_box_append(GTK_BOX(pBox), pToolBar);
     g_object_unref(builder);
 
     /* Update audio toggle status */
@@ -4379,7 +4379,7 @@ common_gtk_main(GApplication *app, gpointer user_data)
     /* This toggle action must not be set active before the pDrawingArea initialization to avoid a GTK warning */
     g_simple_action_set_state(G_SIMPLE_ACTION(g_action_map_lookup_action(G_ACTION_MAP(app), "gap")), g_variant_new_boolean(config.view_gap));
 
-    gtk_container_add (GTK_CONTAINER(pBox), pDrawingArea);
+    gtk_box_append(GTK_BOX(pBox), pDrawingArea);
 
     gtk_widget_set_events(pDrawingArea,
                           GDK_EXPOSURE_MASK | GDK_LEAVE_NOTIFY_MASK |
