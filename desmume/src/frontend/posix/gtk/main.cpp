@@ -1662,6 +1662,8 @@ void Pause(GSimpleAction *action, GVariant *parameter, gpointer user_data)
     //gtk_widget_grab_focus(run);
 }
 
+static void Handle_LoadState(GtkNativeDialog *pFileSelection, int response);
+
 static void LoadStateDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
     GtkFileFilter *pFilter_ds, *pFilter_any;
@@ -1687,8 +1689,12 @@ static void LoadStateDialog(GSimpleAction *action, GVariant *parameter, gpointer
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_ds);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_LoadState), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_LoadState(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -1709,6 +1715,8 @@ static void LoadStateDialog(GSimpleAction *action, GVariant *parameter, gpointer
     }
     g_object_unref(pFileSelection);
 }
+
+static void Handle_RecordMovie(GtkNativeDialog *pFileSelection, int response);
 
 static void RecordMovieDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -1731,13 +1739,16 @@ static void RecordMovieDialog(GSimpleAction *action, GVariant *parameter, gpoint
             GTK_WINDOW(pWindow),
             GTK_FILE_CHOOSER_ACTION_SAVE,
             "_Save", "_Cancel");
-    gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (pFileSelection), TRUE);
 
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_dsm);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_RecordMovie), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_RecordMovie(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -1752,6 +1763,8 @@ static void StopMovie(GSimpleAction *action, GVariant *parameter, gpointer user_
 {
 	FCEUI_StopMovie();
 }
+
+static void Handle_PlayMovie(GtkNativeDialog *pFileSelection, int response);
 
 static void PlayMovieDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -1774,13 +1787,16 @@ static void PlayMovieDialog(GSimpleAction *action, GVariant *parameter, gpointer
             GTK_WINDOW(pWindow),
             GTK_FILE_CHOOSER_ACTION_OPEN,
             "_Open", "_Cancel");
-    gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (pFileSelection), TRUE);
 
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_dsm);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_PlayMovie), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_PlayMovie(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -1791,6 +1807,8 @@ static void PlayMovieDialog(GSimpleAction *action, GVariant *parameter, gpointer
     }
     g_object_unref(pFileSelection);
 }
+
+static void Handle_ImportBackupMemory(GtkNativeDialog *pFileSelection, int response);
 
 static void ImportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -1825,8 +1843,12 @@ static void ImportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter,
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_ar);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_ImportBackupMemory), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_ImportBackupMemory(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -1837,8 +1859,8 @@ static void ImportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter,
                     GTK_MESSAGE_ERROR,
                     GTK_BUTTONS_OK,
                     "Unable to import:\n%s", sPath);
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         }
 
         g_free(sPath);
@@ -1846,6 +1868,8 @@ static void ImportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter,
     g_object_unref(pFileSelection);
     Launch(NULL, NULL, NULL);
 }
+
+static void Handle_ExportBackupMemory(GtkNativeDialog *pFileSelection, int response);
 
 static void ExportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -1868,13 +1892,16 @@ static void ExportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter,
             GTK_WINDOW(pWindow),
             GTK_FILE_CHOOSER_ACTION_SAVE,
             "_Save", "_Cancel");
-    gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (pFileSelection), TRUE);
 
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_raw);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_ExportBackupMemory), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_ExportBackupMemory(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -1890,8 +1917,8 @@ static void ExportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter,
                     GTK_MESSAGE_ERROR,
                     GTK_BUTTONS_OK,
                     "Unable to export:\n%s", sPath);
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         }
 
         g_free(sPath);
@@ -1899,6 +1926,8 @@ static void ExportBackupMemoryDialog(GSimpleAction *action, GVariant *parameter,
     g_object_unref(pFileSelection);
     Launch(NULL, NULL, NULL);
 }
+
+static void Handle_SaveState(GtkNativeDialog *pFileSelection, int response);
 
 static void SaveStateDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -1921,13 +1950,16 @@ static void SaveStateDialog(GSimpleAction *action, GVariant *parameter, gpointer
             GTK_WINDOW(pWindow),
             GTK_FILE_CHOOSER_ACTION_SAVE,
             "_Save", "_Cancel");
-    gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (pFileSelection), TRUE);
 
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_ds);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_SaveState), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_SaveState(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -1948,6 +1980,8 @@ static void SaveStateDialog(GSimpleAction *action, GVariant *parameter, gpointer
     }
     g_object_unref(pFileSelection);
 }
+
+static void Handle_RecordAV_x264(GtkNativeDialog *pFileSelection, int response);
 
 static void RecordAV_x264(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -1974,14 +2008,17 @@ static void RecordAV_x264(GSimpleAction *action, GVariant *parameter, gpointer u
             GTK_WINDOW(pWindow),
             GTK_FILE_CHOOSER_ACTION_SAVE,
             "_Save", "_Cancel");
-    gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (pFileSelection), TRUE);
 
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_mkv);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_mp4);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_RecordAV_x264), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_RecordAV_x264(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -2002,6 +2039,8 @@ static void RecordAV_x264(GSimpleAction *action, GVariant *parameter, gpointer u
     }
     g_object_unref(pFileSelection);
 }
+
+static void Handle_RecordAV_flac(GtkNativeDialog *pFileSelection, int response);
 
 static void RecordAV_flac(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -2024,13 +2063,16 @@ static void RecordAV_flac(GSimpleAction *action, GVariant *parameter, gpointer u
             GTK_WINDOW(pWindow),
             GTK_FILE_CHOOSER_ACTION_SAVE,
             "_Save", "_Cancel");
-    gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (pFileSelection), TRUE);
 
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_flac);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_RecordAV_flac), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_RecordAV_flac(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
@@ -2058,6 +2100,8 @@ static void RecordAV_stop(GSimpleAction *action, GVariant *parameter, gpointer u
     g_simple_action_set_enabled(G_SIMPLE_ACTION(g_action_map_lookup_action(G_ACTION_MAP(pApp), "record_x264")), TRUE);
     g_simple_action_set_enabled(G_SIMPLE_ACTION(g_action_map_lookup_action(G_ACTION_MAP(pApp), "record_flac")), TRUE);
 }
+
+static void Handle_OpenNds(GtkNativeDialog *pFileSelection, int response);
 
 static void OpenNdsDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -2097,8 +2141,12 @@ static void OpenNdsDialog(GSimpleAction *action, GVariant *parameter, gpointer u
 
     gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(pFileSelection), g_get_home_dir());
 
-    /* Showing the window */
-    int response = gtk_native_dialog_run(GTK_NATIVE_DIALOG(pFileSelection));
+    g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_OpenNds), NULL);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
+}
+
+static void Handle_OpenNds(GtkNativeDialog *pFileSelection, int response)
+{
     if (response == GTK_RESPONSE_ACCEPT) {
         GFile *file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(pFileSelection));
         gchar *sPath = g_file_get_path(file);
