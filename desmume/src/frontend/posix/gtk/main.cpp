@@ -2669,7 +2669,6 @@ static void SetAudioVolume(GSimpleAction *action, GVariant *parameter, gpointer 
 	gtk_range_set_value(GTK_RANGE(scale), SNDSDLGetAudioVolume());
 	g_signal_connect(G_OBJECT(scale), "value-changed", G_CALLBACK(CallbackSetAudioVolume), NULL);
 	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), scale);
-	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(dialog)));
 	switch(gtk_dialog_run(GTK_DIALOG(dialog)))
 	{
 		case GTK_RESPONSE_OK:
@@ -2708,7 +2707,6 @@ static void SetFirmwareLanguage(GSimpleAction *action, GVariant *parameter, gpoi
 	g_signal_connect(G_OBJECT(check_button), "toggled", G_CALLBACK(CallbackSetFirmwareLanguage), combo_box_text);
 	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), check_button);
 	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), combo_box_text);
-	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(dialog)));
 	switch(gtk_dialog_run(GTK_DIALOG(dialog)))
 	{
 		case GTK_RESPONSE_OK:
@@ -2764,8 +2762,6 @@ static void Modify_Key(GtkWidget* widget, gpointer data)
 
     g_signal_connect(G_OBJECT(mkDialog), "key_press_event", G_CALLBACK(AcceptNewInputKey), &ctx);
 
-    gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog)));
-
     switch(gtk_dialog_run(GTK_DIALOG(mkDialog))) {
     case GTK_RESPONSE_OK:
         Keypad_Temp[Key] = ctx.mk_key_chosen;
@@ -2806,8 +2802,6 @@ static void Edit_Controls(GSimpleAction *action, GVariant *parameter, gpointer u
         g_signal_connect(G_OBJECT(ecKey), "clicked", G_CALLBACK(Modify_Key), GINT_TO_POINTER(i));
         gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey);
     }
-
-    gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog)));
 
     switch (gtk_dialog_run(GTK_DIALOG(ecDialog))) {
     case GTK_RESPONSE_OK:
@@ -2856,7 +2850,6 @@ static void Modify_JoyKey(GtkWidget* widget, gpointer data)
     ctx.label = gtk_label_new(Title);
     g_free(Title);
     gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label);
-    gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog)));
 
     g_signal_connect(G_OBJECT(mkDialog), "focus_in_event", G_CALLBACK(AcceptNewJoyKey), &ctx);
    
@@ -2917,8 +2910,6 @@ static void EmulationSettingsDialog(GSimpleAction *action, GVariant *parameter, 
     		);
     gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey);
 
-	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(esDialog)));
-
 	bool prev_use_jit=config.use_jit;
 	int prev_jit_max_block_size=config.jit_max_block_size;
 
@@ -2971,8 +2962,6 @@ static void Edit_Joystick_Controls(GSimpleAction *action, GVariant *parameter, g
         g_signal_connect(G_OBJECT(ecKey), "clicked", G_CALLBACK(Modify_JoyKey), GINT_TO_POINTER(i));
         gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey);
     }
-
-    gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog)));
 
     switch (gtk_dialog_run(GTK_DIALOG(ecDialog))) {
     case GTK_RESPONSE_OK:
@@ -3042,8 +3031,6 @@ static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, g
 
 	// SoftRasterizer High Color Interpolation
 	gtk_toggle_button_set_active(wHCInterpolate, CommonSettings.GFX3D_HighResolutionInterpolateColor);
-
-	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(gsDialog)));
 
     switch (gtk_dialog_run(GTK_DIALOG(gsDialog))) {
     case GTK_RESPONSE_OK:
@@ -4401,8 +4388,6 @@ common_gtk_main(GApplication *app, gpointer user_data)
     pStatusBar = gtk_statusbar_new();
     UpdateStatusBar(EMU_DESMUME_NAME_AND_VERSION());
     gtk_box_append(GTK_BOX(pBox), pStatusBar);
-
-    gtk_widget_show_all(pWindow);
 
 	if (winsize_current == WINSIZE_SCALE) {
 		if (config.window_fullscreen) {

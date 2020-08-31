@@ -341,8 +341,6 @@ void CheatList(GSimpleAction *action, GVariant *parameter, gpointer user_data)
     g_signal_connect(G_OBJECT(win), "destroy", cheatListEnd, NULL);
 
     cheat_list_create_ui();
-
-    gtk_widget_show_all(win);
 }
 
 // ---------------------------------------------------------------------------------
@@ -435,6 +433,4 @@ void CheatSearch(GSimpleAction *action, GVariant *parameter, gpointer user_data)
     g_signal_connect(G_OBJECT(win), "destroy", cheatSearchEnd, NULL);
 
     cheat_search_create_ui();
-
-    gtk_widget_show_all(win);
 }

@@ -87,8 +87,7 @@ static reg_t *current_reg[2] = {NULL, NULL};
 	gtk_box_prepend(GTK_BOX(_wl_[w]), __combo_tmp); \
 	gtk_box_prepend(GTK_BOX(_wl_[w]), __combo_lbl_tmp);
 
-#define CREA_END() \
-	gtk_widget_show_all(mWin[c]);
+#define CREA_END()
 
 /////////////////////////////// REG_IME ///////////////////////////////
 static GtkWidget *Widgets_REG_IME[2][1];
@@ -475,8 +474,6 @@ static void open(int ID)
 		gtk_box_prepend(GTK_BOX(mBox0[c]), mIoRegCombo[c]);
 		gtk_box_prepend(GTK_BOX(mBox0[c]), mRegInfos[c]);
 		selected_reg(mIoRegCombo[c], GINT_TO_POINTER(c));
-
-		gtk_widget_show_all(mWin[c]);
 	}
 }
 
