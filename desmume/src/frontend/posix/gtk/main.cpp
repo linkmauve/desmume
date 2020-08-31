@@ -1705,8 +1705,8 @@ static void Handle_LoadState(GtkNativeDialog *pFileSelection, int response)
                     GTK_MESSAGE_ERROR,
                     GTK_BUTTONS_OK,
                     "Unable to load :\n%s", sPath);
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         } else {
             g_simple_action_set_enabled(G_SIMPLE_ACTION(g_action_map_lookup_action(G_ACTION_MAP(pApp), "run")), TRUE);
         }
@@ -1970,8 +1970,8 @@ static void Handle_SaveState(GtkNativeDialog *pFileSelection, int response)
                     GTK_MESSAGE_ERROR,
                     GTK_BUTTONS_OK,
                     "Unable to save :\n%s", sPath);
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         } else {
             g_simple_action_set_enabled(G_SIMPLE_ACTION(g_action_map_lookup_action(G_ACTION_MAP(pApp), "run")), TRUE);
         }
@@ -2031,8 +2031,8 @@ static void Handle_RecordAV_x264(GtkNativeDialog *pFileSelection, int response)
                     GTK_MESSAGE_ERROR,
                     GTK_BUTTONS_OK,
                     "Unable to record video to:\n%s", sPath);
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         }
 
         g_free(sPath);
@@ -2085,8 +2085,8 @@ static void Handle_RecordAV_flac(GtkNativeDialog *pFileSelection, int response)
                     GTK_MESSAGE_ERROR,
                     GTK_BUTTONS_OK,
                     "Unable to record audio to:\n%s", sPath);
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         }
 
         g_free(sPath);
@@ -2157,8 +2157,8 @@ static void Handle_OpenNds(GtkNativeDialog *pFileSelection, int response)
                     GTK_MESSAGE_ERROR,
                     GTK_BUTTONS_OK,
                     "Unable to load :\n%s", sPath);
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         } else {
             GtkRecentData recentData;
             gchar *uri;
@@ -2205,8 +2205,8 @@ static void OpenRecent(GSimpleAction *action, GVariant *parameter, gpointer user
                 GTK_MESSAGE_ERROR,
                 GTK_BUTTONS_OK,
                 "Unable to load :\n%s", uri);
-        gtk_dialog_run(GTK_DIALOG(pDialog));
-        gtk_widget_destroy(pDialog);
+        g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+        gtk_widget_show(pDialog);
     }
 
     g_free(romname);
@@ -4548,8 +4548,8 @@ common_gtk_main(GApplication *app, gpointer user_data)
                     GTK_MESSAGE_INFO,
                     GTK_BUTTONS_OK,
                     "Unable to load :\n%s", my_config->nds_file.c_str());
-            gtk_dialog_run(GTK_DIALOG(pDialog));
-            gtk_widget_destroy(pDialog);
+            g_signal_connect(pDialog, "response", G_CALLBACK(gtk_window_destroy), pDialog);
+            gtk_widget_show(pDialog);
         }
     }
 
