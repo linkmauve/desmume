@@ -335,7 +335,7 @@ void CheatList(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
     shouldBeRunning = desmume_running();
     Pause(NULL, NULL, NULL);
-    win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    win = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(win),"Cheat List");
     gtk_window_set_modal(GTK_WINDOW(win), TRUE);
     g_signal_connect(G_OBJECT(win), "destroy", cheatListEnd, NULL);
@@ -429,7 +429,7 @@ void CheatSearch(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
     shouldBeRunning = desmume_running();
     Pause(NULL, NULL, NULL);
-    win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    win = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(win),"Cheat Search");
     gtk_window_set_modal(GTK_WINDOW(win), TRUE);
     g_signal_connect(G_OBJECT(win), "destroy", cheatSearchEnd, NULL);

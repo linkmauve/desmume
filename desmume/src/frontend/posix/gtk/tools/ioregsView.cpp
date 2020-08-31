@@ -450,7 +450,7 @@ static void open(int ID)
 	{
 		CPUS[c] = TRUE;
 
-		mWin[c]= gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		mWin[c]= gtk_window_new();
 		if(c == 0)	gtk_window_set_title(GTK_WINDOW(mWin[c]), TOOL_NAME " : ARM9");
 		else	gtk_window_set_title(GTK_WINDOW(mWin[c]), TOOL_NAME " : ARM7");
 		g_signal_connect(G_OBJECT(mWin[c]), "destroy", G_CALLBACK(&_closeOne), GINT_TO_POINTER(c));
