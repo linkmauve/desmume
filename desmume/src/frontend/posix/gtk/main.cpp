@@ -2707,6 +2707,8 @@ static void CallbackSetAudioVolume(GtkWidget *scale, gpointer data)
 	config.audio_volume = SNDSDLGetAudioVolume();
 }
 
+static void Handle_SetAudioVolume(GtkDialog *dialog, int response);
+
 static void SetAudioVolume(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
 	GtkWidget *dialog = NULL;
@@ -2717,8 +2719,14 @@ static void SetAudioVolume(GSimpleAction *action, GVariant *parameter, gpointer 
 	gtk_range_set_value(GTK_RANGE(scale), SNDSDLGetAudioVolume());
 	g_signal_connect(G_OBJECT(scale), "value-changed", G_CALLBACK(CallbackSetAudioVolume), NULL);
 	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), scale);
-	switch(gtk_dialog_run(GTK_DIALOG(dialog)))
-	{
+
+    g_signal_connect(dialog, "response", G_CALLBACK(Handle_SetAudioVolume), NULL);
+    gtk_widget_show(dialog);
+}
+
+static void Handle_SetAudioVolume(GtkDialog *dialog, int response)
+{
+	switch (response) {
 		case GTK_RESPONSE_OK:
 			break;
 		case GTK_RESPONSE_CANCEL:
@@ -2727,7 +2735,7 @@ static void SetAudioVolume(GSimpleAction *action, GVariant *parameter, gpointer 
 			config.audio_volume = SNDSDLGetAudioVolume();
 			break;
 	}
-	gtk_widget_destroy(dialog);
+	gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
 /////////////////////////////// SET FIRMWARE LANGUAGE //////////////////////////////////////
@@ -2737,13 +2745,15 @@ static void CallbackSetFirmwareLanguage(GtkWidget *check_button, gpointer data)
 	gtk_widget_set_sensitive(GTK_WIDGET(data), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button)));
 }
 
+static void Handle_SetFirmwareLanguage(GtkDialog *dialog, int response, gpointer data);
+
+static const char *languages[6] = {"Japanese", "English", "French", "German", "Italian", "Spanish"};
+
 static void SetFirmwareLanguage(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
 	GtkWidget *dialog = NULL;
 	GtkWidget *combo_box_text = NULL;
 	GtkWidget *check_button = NULL;
-	const char *languages[6] = {"Japanese", "English", "French", "German", "Italian", "Spanish"};
-	gchar *text = NULL;
 	dialog = gtk_dialog_new_with_buttons("Set firmware language", GTK_WINDOW(pWindow), GTK_DIALOG_MODAL, "_OK", GTK_RESPONSE_OK, "_Cancel", GTK_RESPONSE_CANCEL, NULL);
 	combo_box_text = gtk_combo_box_text_new();
 	for(int index = 0; index < 6; index++)
@@ -2755,10 +2765,19 @@ static void SetFirmwareLanguage(GSimpleAction *action, GVariant *parameter, gpoi
 	g_signal_connect(G_OBJECT(check_button), "toggled", G_CALLBACK(CallbackSetFirmwareLanguage), combo_box_text);
 	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), check_button);
 	gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), combo_box_text);
-	switch(gtk_dialog_run(GTK_DIALOG(dialog)))
-	{
+
+	g_signal_connect(dialog, "response", G_CALLBACK(Handle_SetFirmwareLanguage), combo_box_text);
+	gtk_widget_show(dialog);
+}
+
+static void Handle_SetFirmwareLanguage(GtkDialog *dialog, int response, gpointer data)
+{
+	GtkWidget *combo_box_text = GTK_WIDGET(data);
+	GtkWidget *check_button = GTK_WIDGET(data) + 1;
+	switch (response) {
 		case GTK_RESPONSE_OK:
-			text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo_box_text));
+		{
+			gchar *text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo_box_text));
 			for(int index = 0; index < 6; index++)
 				if(strcmp(text, languages[index]) == 0)
 				{
@@ -2767,11 +2786,12 @@ static void SetFirmwareLanguage(GSimpleAction *action, GVariant *parameter, gpoi
 				}
 			config.command_line_overriding_firmware_language = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button));
 			break;
+		}
 		case GTK_RESPONSE_CANCEL:
 		case GTK_RESPONSE_NONE:
 			break;
 	}
-	gtk_widget_destroy(dialog);
+	gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
 /////////////////////////////// CONTROLS EDIT //////////////////////////////////////
@@ -2785,6 +2805,8 @@ static void AcceptNewInputKey(GtkWidget *w, GdkEventKey *e, struct modify_key_ct
     gtk_label_set_text(GTK_LABEL(ctx->label), YouPressed);
     g_free(YouPressed);
 }
+
+static void Handle_Modify_Key(GtkDialog *dialog, int response, gpointer data);
 
 static void Modify_Key(GtkWidget* widget, gpointer data)
 {
@@ -2809,8 +2831,15 @@ static void Modify_Key(GtkWidget* widget, gpointer data)
     gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label);
 
     g_signal_connect(G_OBJECT(mkDialog), "key_press_event", G_CALLBACK(AcceptNewInputKey), &ctx);
+    g_signal_connect(mkDialog, "response", G_CALLBACK(Handle_Modify_Key), widget);
+    gtk_widget_show(mkDialog);
+}
 
-    switch(gtk_dialog_run(GTK_DIALOG(mkDialog))) {
+static void Handle_Modify_Key(GtkDialog *dialog, int response, gpointer data)
+{
+    // TODO: also receive the other variables…
+    GtkWidget *widget = GTK_WIDGET(data);
+    switch (response) {
     case GTK_RESPONSE_OK:
         Keypad_Temp[Key] = ctx.mk_key_chosen;
         Key_Label = g_strdup_printf("%s (%s)", key_names[Key], gdk_keyval_name(Keypad_Temp[Key]));
@@ -2823,9 +2852,10 @@ static void Modify_Key(GtkWidget* widget, gpointer data)
         break;
     }
 
-    gtk_widget_destroy(mkDialog);
-
+    gtk_window_destroy(GTK_WINDOW(dialog));
 }
+
+static void Handle_Edit_Controls(GtkDialog *dialog, int response, gpointer data);
 
 static void Edit_Controls(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -2851,7 +2881,14 @@ static void Edit_Controls(GSimpleAction *action, GVariant *parameter, gpointer u
         gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey);
     }
 
-    switch (gtk_dialog_run(GTK_DIALOG(ecDialog))) {
+
+	g_signal_connect(ecDialog, "response", G_CALLBACK(Handle_Edit_Controls), NULL);
+	gtk_widget_show(ecDialog);
+}
+
+static void Handle_Edit_Controls(GtkDialog *dialog, int response, gpointer data)
+{
+    switch (response) {
     case GTK_RESPONSE_OK:
         memcpy(&keyboard_cfg, &Keypad_Temp, sizeof(keyboard_cfg));
         desmume_config_update_keys(keyfile);
@@ -2860,7 +2897,7 @@ static void Edit_Controls(GSimpleAction *action, GVariant *parameter, gpointer u
     case GTK_RESPONSE_NONE:
         break;
     }
-    gtk_widget_destroy(ecDialog);
+    gtk_window_destroy(GTK_WINDOW(dialog));
 
 }
 
@@ -2874,6 +2911,8 @@ static void AcceptNewJoyKey(GtkWidget *w, GdkEventFocus *e, struct modify_key_ct
     gtk_label_set_text(GTK_LABEL(ctx->label), YouPressed);
     g_free(YouPressed);
 }
+
+static void Handle_Modify_JoyKey(GtkDialog *dialog, int response, gpointer data);
 
 static void Modify_JoyKey(GtkWidget* widget, gpointer data)
 {
@@ -2901,7 +2940,15 @@ static void Modify_JoyKey(GtkWidget* widget, gpointer data)
 
     g_signal_connect(G_OBJECT(mkDialog), "focus_in_event", G_CALLBACK(AcceptNewJoyKey), &ctx);
    
-    switch(gtk_dialog_run(GTK_DIALOG(mkDialog))) {
+
+	g_signal_connect(mkDialog, "response", G_CALLBACK(Handle_Modify_JoyKey), widget);
+	gtk_widget_show(mkDialog);
+}
+
+static void Handle_Modify_JoyKey(GtkDialog *dialog, int response, gpointer data)
+{
+	GtkWidget *widget = GTK_WIDGET(data);
+    switch (response) {
     case GTK_RESPONSE_OK:
         Keypad_Temp[Key] = ctx.mk_key_chosen;
         Key_Label = g_strdup_printf("%s (%d)", key_names[Key], Keypad_Temp[Key]);
@@ -2914,11 +2961,12 @@ static void Modify_JoyKey(GtkWidget* widget, gpointer data)
         break;
     }
 
-    gtk_widget_destroy(mkDialog);
-
+    gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
 #ifdef HAVE_JIT
+
+static void Handle_EmulationSettings(GtkDialog *dialog, int response, gpointer data);
 
 static void EmulationSettingsDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data){
 	GtkWidget *esDialog;
@@ -2958,10 +3006,16 @@ static void EmulationSettingsDialog(GSimpleAction *action, GVariant *parameter, 
     		);
     gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(esDialog))), esKey);
 
+	g_signal_connect(esDialog, "response", G_CALLBACK(Handle_EmulationSettings), NULL);
+	gtk_widget_show(esDialog);
+}
+
+static void Handle_EmulationSettings(GtkDialog *dialog, int response, gpointer data)
+{
 	bool prev_use_jit=config.use_jit;
 	int prev_jit_max_block_size=config.jit_max_block_size;
 
-	switch (gtk_dialog_run(GTK_DIALOG(esDialog))) {
+	switch (response) {
 	case GTK_RESPONSE_OK:
 		CommonSettings.jit_max_block_size=config.jit_max_block_size;
 		arm_jit_sync();
@@ -2973,7 +3027,7 @@ static void EmulationSettingsDialog(GSimpleAction *action, GVariant *parameter, 
 		config.jit_max_block_size=prev_jit_max_block_size;
 		break;
 	}
-	gtk_widget_destroy(esDialog);
+	gtk_window_destroy(GTK_WINDOW(dialog));
 
 }
 
@@ -2986,6 +3040,8 @@ static void ToggleJIT(){
 }
 
 #endif
+
+static void Handle_Edit_Joystick_Controls(GtkDialog *dialog, int response, gpointer data);
 
 static void Edit_Joystick_Controls(GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -3011,7 +3067,14 @@ static void Edit_Joystick_Controls(GSimpleAction *action, GVariant *parameter, g
         gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(ecDialog))), ecKey);
     }
 
-    switch (gtk_dialog_run(GTK_DIALOG(ecDialog))) {
+
+	g_signal_connect(ecDialog, "response", G_CALLBACK(Handle_Edit_Joystick_Controls), NULL);
+	gtk_widget_show(ecDialog);
+}
+
+static void Handle_Edit_Joystick_Controls(GtkDialog *dialog, int response, gpointer data)
+{
+    switch (response) {
     case GTK_RESPONSE_OK:
         memcpy(&joypad_cfg, &Keypad_Temp, sizeof(keyboard_cfg));
         desmume_config_update_joykeys(keyfile);
@@ -3020,10 +3083,10 @@ static void Edit_Joystick_Controls(GSimpleAction *action, GVariant *parameter, g
     case GTK_RESPONSE_NONE:
         break;
     }
-    gtk_widget_destroy(ecDialog);
-
+    gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+static void Handle_GraphicsSettings(GtkDialog *dialog, int response, gpointer data);
 
 static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
 	GtkWidget *gsDialog;
@@ -3080,7 +3143,13 @@ static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, g
 	// SoftRasterizer High Color Interpolation
 	gtk_toggle_button_set_active(wHCInterpolate, CommonSettings.GFX3D_HighResolutionInterpolateColor);
 
-    switch (gtk_dialog_run(GTK_DIALOG(gsDialog))) {
+	g_signal_connect(gsDialog, "response", G_CALLBACK(Handle_GraphicsSettings), NULL);
+	gtk_widget_show(gsDialog);
+}
+
+static void Handle_GraphicsSettings(GtkDialog *dialog, int response, gpointer data)
+{
+    switch (response) {
     case GTK_RESPONSE_OK:
     // Start: OK Response block
     {
@@ -3148,7 +3217,7 @@ static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, g
         break;
     }
 
-	gtk_widget_destroy(gsDialog);
+	gtk_window_destroy(GTK_WINDOW(dialog));
 
 }
 
