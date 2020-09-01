@@ -2813,19 +2813,26 @@ static void AcceptNewInputKey(GtkWidget *w, GdkEvent *e, struct modify_key_ctx *
     g_free(YouPressed);
 }
 
+struct KeyState {
+    GtkWidget *widget;
+    struct modify_key_ctx ctx;
+    gint Key;
+};
+
 static void Handle_Modify_Key(GtkDialog *dialog, int response, gpointer data);
 
 static void Modify_Key(GtkWidget* widget, gpointer data)
 {
-    struct modify_key_ctx ctx;
     GtkWidget *mkDialog;
-    gchar *Key_Label;
     gchar *Title;
     gint Key;
 
-    Key = GPOINTER_TO_INT(data);
-    ctx.mk_key_chosen = 0;
-    Title = g_strdup_printf("Press \"%s\" key ...\n", key_names[Key]);
+    KeyState *state = static_cast<KeyState*>(malloc(sizeof(KeyState)));
+
+    state->widget = widget;
+    state->Key = GPOINTER_TO_INT(data);
+    state->ctx.mk_key_chosen = 0;
+    Title = g_strdup_printf("Press \"%s\" key ...\n", key_names[state->Key]);
     mkDialog = gtk_dialog_new_with_buttons(Title,
         GTK_WINDOW(pWindow),
         GTK_DIALOG_MODAL,
@@ -2833,29 +2840,30 @@ static void Modify_Key(GtkWidget* widget, gpointer data)
         "_Cancel",GTK_RESPONSE_CANCEL,
         NULL);
 
-    ctx.label = gtk_label_new(Title);
+    state->ctx.label = gtk_label_new(Title);
     g_free(Title);
-    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), state->ctx.label);
 
-    g_signal_connect(G_OBJECT(mkDialog), "key_press_event", G_CALLBACK(AcceptNewInputKey), &ctx);
+    g_signal_connect(G_OBJECT(mkDialog), "key_press_event", G_CALLBACK(AcceptNewInputKey), &state->ctx);
     g_signal_connect(mkDialog, "response", G_CALLBACK(Handle_Modify_Key), widget);
     gtk_widget_show(mkDialog);
 }
 
 static void Handle_Modify_Key(GtkDialog *dialog, int response, gpointer data)
 {
-    // TODO: also receive the other variables…
-    GtkWidget *widget = GTK_WIDGET(data);
+    KeyState *state = static_cast<KeyState*>(data);
+    gchar *Key_Label;
+
     switch (response) {
     case GTK_RESPONSE_OK:
-        Keypad_Temp[Key] = ctx.mk_key_chosen;
-        Key_Label = g_strdup_printf("%s (%s)", key_names[Key], gdk_keyval_name(Keypad_Temp[Key]));
-        gtk_button_set_label(GTK_BUTTON(widget), Key_Label);
+        Keypad_Temp[state->Key] = state->ctx.mk_key_chosen;
+        Key_Label = g_strdup_printf("%s (%s)", key_names[state->Key], gdk_keyval_name(Keypad_Temp[state->Key]));
+        gtk_button_set_label(GTK_BUTTON(state->widget), Key_Label);
         g_free(Key_Label);
         break;
     case GTK_RESPONSE_CANCEL:
     case GTK_RESPONSE_NONE:
-        ctx.mk_key_chosen = 0;
+        state->ctx.mk_key_chosen = 0;
         break;
     }
 
@@ -2889,8 +2897,8 @@ static void Edit_Controls(GSimpleAction *action, GVariant *parameter, gpointer u
     }
 
 
-	g_signal_connect(ecDialog, "response", G_CALLBACK(Handle_Edit_Controls), NULL);
-	gtk_widget_show(ecDialog);
+    g_signal_connect(ecDialog, "response", G_CALLBACK(Handle_Edit_Controls), NULL);
+    gtk_widget_show(ecDialog);
 }
 
 static void Handle_Edit_Controls(GtkDialog *dialog, int response, gpointer data)
@@ -2919,21 +2927,28 @@ static void AcceptNewJoyKey(GtkWidget *w, GdkEvent *e, struct modify_key_ctx *ct
     g_free(YouPressed);
 }
 
+struct JoyKeyState {
+    GtkWidget *widget;
+    struct modify_key_ctx ctx;
+    gint Key;
+};
+
 static void Handle_Modify_JoyKey(GtkDialog *dialog, int response, gpointer data);
 
 static void Modify_JoyKey(GtkWidget* widget, gpointer data)
 {
     struct modify_key_ctx ctx;
     GtkWidget *mkDialog;
-    gchar *Key_Label;
     gchar *Title;
-    gint Key;
 
-    Key = GPOINTER_TO_INT(data);
+    JoyKeyState *state = static_cast<JoyKeyState*>(malloc(sizeof(JoyKeyState)));
+
+    state->widget = widget;
+    state->Key = GPOINTER_TO_INT(data);
     /* Joypad keys start at 1 */
-    ctx.key_id = Key+1;
-    ctx.mk_key_chosen = 0;
-    Title = g_strdup_printf("Press \"%s\" key ...\n", key_names[Key]);
+    state->ctx.key_id = state->Key+1;
+    state->ctx.mk_key_chosen = 0;
+    Title = g_strdup_printf("Press \"%s\" key ...\n", key_names[state->Key]);
     mkDialog = gtk_dialog_new_with_buttons(Title,
         GTK_WINDOW(pWindow),
         GTK_DIALOG_MODAL,
@@ -2941,33 +2956,35 @@ static void Modify_JoyKey(GtkWidget* widget, gpointer data)
         "_Cancel",GTK_RESPONSE_CANCEL,
         NULL);
 
-    ctx.label = gtk_label_new(Title);
+    state->ctx.label = gtk_label_new(Title);
     g_free(Title);
-    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), ctx.label);
+    gtk_box_prepend(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(mkDialog))), state->ctx.label);
 
-    g_signal_connect(G_OBJECT(mkDialog), "focus_in_event", G_CALLBACK(AcceptNewJoyKey), &ctx);
+    g_signal_connect(G_OBJECT(mkDialog), "focus_in_event", G_CALLBACK(AcceptNewJoyKey), &state->ctx);
    
 
-	g_signal_connect(mkDialog, "response", G_CALLBACK(Handle_Modify_JoyKey), widget);
-	gtk_widget_show(mkDialog);
+    g_signal_connect(mkDialog, "response", G_CALLBACK(Handle_Modify_JoyKey), state);
+    gtk_widget_show(mkDialog);
 }
 
 static void Handle_Modify_JoyKey(GtkDialog *dialog, int response, gpointer data)
 {
-	GtkWidget *widget = GTK_WIDGET(data);
+    JoyKeyState *state = static_cast<JoyKeyState*>(data);
+    gchar *Key_Label;
     switch (response) {
     case GTK_RESPONSE_OK:
-        Keypad_Temp[Key] = ctx.mk_key_chosen;
-        Key_Label = g_strdup_printf("%s (%d)", key_names[Key], Keypad_Temp[Key]);
-        gtk_button_set_label(GTK_BUTTON(widget), Key_Label);
+        Keypad_Temp[state->Key] = state->ctx.mk_key_chosen;
+        Key_Label = g_strdup_printf("%s (%d)", key_names[state->Key], Keypad_Temp[state->Key]);
+        gtk_button_set_label(GTK_BUTTON(state->widget), Key_Label);
         g_free(Key_Label);
         break;
     case GTK_RESPONSE_CANCEL:
     case GTK_RESPONSE_NONE:
-        ctx.mk_key_chosen = 0;
+        state->ctx.mk_key_chosen = 0;
         break;
     }
 
+    free(state);
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
@@ -3093,14 +3110,22 @@ static void Handle_Edit_Joystick_Controls(GtkDialog *dialog, int response, gpoin
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+struct GraphicsSettingsState {
+    GtkComboBox *coreCombo, *wScale;
+#ifdef HAVE_OPENGL
+    GtkComboBox *wMultisample;
+#endif
+    GtkToggleButton *wPosterize, *wSmoothing, *wHCInterpolate;
+};
+
 static void Handle_GraphicsSettings(GtkDialog *dialog, int response, gpointer data);
 
 static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
 	GtkWidget *gsDialog;
 	GtkBox *wBox;
 	GtkGrid *wGrid;
-	GtkComboBox *coreCombo, *wScale, *wMultisample;
-	GtkToggleButton *wPosterize, *wSmoothing, *wHCInterpolate;
+
+	GraphicsSettingsState *state = static_cast<GraphicsSettingsState*>(malloc(sizeof(GraphicsSettingsState)));
 
 	gsDialog = gtk_dialog_new_with_buttons("Graphics Settings",
 			GTK_WINDOW(pWindow),
@@ -3115,28 +3140,30 @@ static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, g
 	wBox = GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(gsDialog)));
 	wGrid = GTK_GRID(gtk_builder_get_object(builder, "graphics_grid"));
 	gtk_box_prepend(wBox, GTK_WIDGET(wGrid));
-	coreCombo = GTK_COMBO_BOX(gtk_builder_get_object(builder, "core_combo"));
-	wScale = GTK_COMBO_BOX(gtk_builder_get_object(builder, "scale"));
-	wMultisample = GTK_COMBO_BOX(gtk_builder_get_object(builder, "multisample"));
-	wPosterize = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "posterize"));
-	wSmoothing = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "smoothing"));
-	wHCInterpolate = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "hc_interpolate"));
+	state->coreCombo = GTK_COMBO_BOX(gtk_builder_get_object(builder, "core_combo"));
+	state->wScale = GTK_COMBO_BOX(gtk_builder_get_object(builder, "scale"));
+#ifdef HAVE_OPENGL
+	state->wMultisample = GTK_COMBO_BOX(gtk_builder_get_object(builder, "multisample"));
+#endif
+	state->wPosterize = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "posterize"));
+	state->wSmoothing = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "smoothing"));
+	state->wHCInterpolate = GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder, "hc_interpolate"));
 	g_object_unref(builder);
 
 #ifndef HAVE_OPENGL
-	gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(coreCombo), 2);
+	gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(state->coreCombo), 2);
 	gtk_grid_remove_row(wGrid, 4);
 #endif
-	gtk_combo_box_set_active(coreCombo, cur3DCore);
+	gtk_combo_box_set_active(state->coreCombo, cur3DCore);
 
 	// The shift it work for scale up to 4. For scaling more than 4, a mapping function is required
-	gtk_combo_box_set_active(wScale, CommonSettings.GFX3D_Renderer_TextureScalingFactor >> 1);
+	gtk_combo_box_set_active(state->wScale, CommonSettings.GFX3D_Renderer_TextureScalingFactor >> 1);
 
 	// 3D Texture Deposterization
-	gtk_toggle_button_set_active(wPosterize, CommonSettings.GFX3D_Renderer_TextureDeposterize);
+	gtk_toggle_button_set_active(state->wPosterize, CommonSettings.GFX3D_Renderer_TextureDeposterize);
 
 	// 3D Texture Smoothing
-	gtk_toggle_button_set_active(wSmoothing, CommonSettings.GFX3D_Renderer_TextureSmoothing);
+	gtk_toggle_button_set_active(state->wSmoothing, CommonSettings.GFX3D_Renderer_TextureSmoothing);
 
 #ifdef HAVE_OPENGL
 	// OpenGL Multisample
@@ -3144,23 +3171,24 @@ static void GraphicsSettingsDialog(GSimpleAction *action, GVariant *parameter, g
 	int currentActive = 0;
 	// find smallest option that is larger than current value, i.e. round up to power of 2
 	while (multisampleSizes[currentActive] < currentMultisample && currentActive < 5) { currentActive++; }
-	gtk_combo_box_set_active(wMultisample, currentActive);
+	gtk_combo_box_set_active(state->wMultisample, currentActive);
 #endif
 
 	// SoftRasterizer High Color Interpolation
-	gtk_toggle_button_set_active(wHCInterpolate, CommonSettings.GFX3D_HighResolutionInterpolateColor);
+	gtk_toggle_button_set_active(state->wHCInterpolate, CommonSettings.GFX3D_HighResolutionInterpolateColor);
 
-	g_signal_connect(gsDialog, "response", G_CALLBACK(Handle_GraphicsSettings), NULL);
+	g_signal_connect(gsDialog, "response", G_CALLBACK(Handle_GraphicsSettings), state);
 	gtk_widget_show(gsDialog);
 }
 
 static void Handle_GraphicsSettings(GtkDialog *dialog, int response, gpointer data)
 {
+    GraphicsSettingsState *state = static_cast<GraphicsSettingsState*>(data);
     switch (response) {
     case GTK_RESPONSE_OK:
     // Start: OK Response block
     {
-    	int sel3DCore = gtk_combo_box_get_active(coreCombo);
+    	int sel3DCore = gtk_combo_box_get_active(state->coreCombo);
 
     	// Change only if needed
 		if (sel3DCore != cur3DCore)
@@ -3196,7 +3224,7 @@ static void Handle_GraphicsSettings(GtkDialog *dialog, int response, gpointer da
 
 		size_t scale = 1;
 
-		switch (gtk_combo_box_get_active(wScale)){
+		switch (gtk_combo_box_get_active(state->wScale)){
 		case 1:
 			scale = 2;
 			break;
@@ -3206,12 +3234,12 @@ static void Handle_GraphicsSettings(GtkDialog *dialog, int response, gpointer da
 		default:
 			break;
 		}
-		CommonSettings.GFX3D_Renderer_TextureDeposterize = config.textureDeposterize = gtk_toggle_button_get_active(wPosterize);
-		CommonSettings.GFX3D_Renderer_TextureSmoothing = config.textureSmoothing = gtk_toggle_button_get_active(wSmoothing);
+		CommonSettings.GFX3D_Renderer_TextureDeposterize = config.textureDeposterize = gtk_toggle_button_get_active(state->wPosterize);
+		CommonSettings.GFX3D_Renderer_TextureSmoothing = config.textureSmoothing = gtk_toggle_button_get_active(state->wSmoothing);
 		CommonSettings.GFX3D_Renderer_TextureScalingFactor = config.textureUpscale = scale;
-		CommonSettings.GFX3D_HighResolutionInterpolateColor = config.highColorInterpolation = gtk_toggle_button_get_active(wHCInterpolate);
+		CommonSettings.GFX3D_HighResolutionInterpolateColor = config.highColorInterpolation = gtk_toggle_button_get_active(state->wHCInterpolate);
 #ifdef HAVE_OPENGL
-		int selectedMultisample = gtk_combo_box_get_active(wMultisample);
+		int selectedMultisample = gtk_combo_box_get_active(state->wMultisample);
 		config.multisamplingSize = multisampleSizes[selectedMultisample];
 		config.multisampling = selectedMultisample != 0;
 		CommonSettings.GFX3D_Renderer_MultisampleSize = multisampleSizes[selectedMultisample];
@@ -3224,8 +3252,8 @@ static void Handle_GraphicsSettings(GtkDialog *dialog, int response, gpointer da
         break;
     }
 
+    free(state);
 	gtk_window_destroy(GTK_WINDOW(dialog));
-
 }
 
 static void ToggleLayerVisibility(GSimpleAction *action, GVariant *parameter, gpointer user_data)
