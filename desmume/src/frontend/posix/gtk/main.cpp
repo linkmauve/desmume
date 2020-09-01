@@ -2339,7 +2339,7 @@ static void ToggleSwapScreens(GSimpleAction *action, GVariant *parameter, gpoint
     g_simple_action_set_state(action, g_variant_new_boolean(value));
 }
 
-static int ConfigureDrawingArea(GtkWidget *widget, GdkEventConfigure *event, gpointer data)
+static int ConfigureDrawingArea(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
     return TRUE;
 }
@@ -2406,7 +2406,7 @@ static inline void drawBottomScreen(cairo_t* cr, u32* buf, gint w, gint h, gint 
 }
 
 /* Drawing callback */
-static gboolean ExposeDrawingArea (GtkWidget *widget, GdkEventExpose *event, gpointer data)
+static gboolean ExposeDrawingArea (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	GdkWindow* window = gtk_widget_get_window(widget);
 	gint daW, daH;
@@ -2564,19 +2564,25 @@ static gboolean rotoscaled_touchpos(gint x, gint y, gboolean start)
     return FALSE;
 }
 
-static gboolean Stylus_Move(GtkWidget *w, GdkEventMotion *e, gpointer data)
+static gboolean Stylus_Move(GtkWidget *w, GdkEvent *e, gpointer data)
 {
     GdkModifierType state;
     gint x,y;
 
     if(click) {
+#if 0
         if(e->is_hint)
-            gdk_window_get_device_position(gtk_widget_get_window(w), e->device, &x, &y, &state);
+            gdk_window_get_device_position(gtk_widget_get_window(w), gdk_event_get_device(e), &x, &y, &state);
         else {
-            x= (gint)e->x;
-            y= (gint)e->y;
-            state=(GdkModifierType)e->state;
+#endif
+            double x_double, y_double;
+            gdk_event_get_position(e, &x_double, &y_double);
+            x = (gint)x_double;
+            y = (gint)y_double;
+            state = gdk_event_get_modifier_state(e);
+#if 0
         }
+#endif
 
         if(state & GDK_BUTTON1_MASK) {
 #ifdef HAVE_LIBAGG
@@ -2594,12 +2600,9 @@ static gboolean Stylus_Move(GtkWidget *w, GdkEventMotion *e, gpointer data)
     return TRUE;
 }
 
-static gboolean Stylus_Press(GtkWidget * w, GdkEventButton * e,
+static gboolean Stylus_Press(GtkWidget * w, GdkEvent * e,
                              gpointer data)
 {
-    GdkModifierType state;
-    gint x, y;
-
 #if 0
     if (e->button == 3) {
         GtkWidget * pMenu = gtk_menu_item_get_submenu ( GTK_MENU_ITEM(
@@ -2608,10 +2611,11 @@ static gboolean Stylus_Press(GtkWidget * w, GdkEventButton * e,
     }
 #endif
 
-    if (e->button == 1) {
-        gdk_window_get_device_position(gtk_widget_get_window(w), e->device, &x, &y, &state);
-
+    if (gdk_button_event_get_button(e) == 1) {
+        GdkModifierType state = gdk_event_get_modifier_state(e);
         if(state & GDK_BUTTON1_MASK) {
+            double x, y;
+            gdk_event_get_position(e, &x, &y);
 #ifdef HAVE_LIBAGG
             if (HudEditorMode) {
                 click = rotoscaled_hudedit(x, y, TRUE);
@@ -2625,7 +2629,7 @@ static gboolean Stylus_Press(GtkWidget * w, GdkEventButton * e,
 
     return TRUE;
 }
-static gboolean Stylus_Release(GtkWidget *w, GdkEventButton *e, gpointer data)
+static gboolean Stylus_Release(GtkWidget *w, GdkEvent *e, gpointer data)
 {
 #ifdef HAVE_LIBAGG
     HudClickRelease(&Hud);
@@ -2670,12 +2674,13 @@ static void MenuSave(GSimpleAction *action, GVariant *parameter, gpointer user_d
     savegame(g_variant_get_uint32(parameter));
 }
 
-static gint Key_Press(GtkWidget *w, GdkEventKey *e, gpointer data)
+static gint Key_Press(GtkWidget *w, GdkEvent *e, gpointer data)
 {
   guint mask;
   mask = gtk_accelerator_get_default_mod_mask ();
-  if( (e->state & mask) == 0){
-    u16 Key = lookup_key(e->keyval);
+  guint keyval = gdk_key_event_get_keyval(e);
+  if( (gdk_event_get_modifier_state(e) & mask) == 0){
+    u16 Key = lookup_key(keyval);
     if(Key){
       ADD_KEY( keys_latch, Key );
       return 1;
@@ -2683,7 +2688,7 @@ static gint Key_Press(GtkWidget *w, GdkEventKey *e, gpointer data)
   }
 
 #ifdef PROFILE_MEMORY_ACCESS
-  if ( e->keyval == GDK_Tab) {
+  if ( keyval == GDK_Tab) {
     print_memory_profiling();
     return 1;
   }
@@ -2691,9 +2696,10 @@ static gint Key_Press(GtkWidget *w, GdkEventKey *e, gpointer data)
   return 0;
 }
 
-static gint Key_Release(GtkWidget *w, GdkEventKey *e, gpointer data)
+static gint Key_Release(GtkWidget *w, GdkEvent *e, gpointer data)
 {
-  u16 Key = lookup_key(e->keyval);
+  guint keyval = gdk_key_event_get_keyval(e);
+  u16 Key = lookup_key(keyval);
   RM_KEY( keys_latch, Key );
   return 1;
 
@@ -2796,12 +2802,13 @@ static void Handle_SetFirmwareLanguage(GtkDialog *dialog, int response, gpointer
 
 /////////////////////////////// CONTROLS EDIT //////////////////////////////////////
 
-static void AcceptNewInputKey(GtkWidget *w, GdkEventKey *e, struct modify_key_ctx *ctx)
+static void AcceptNewInputKey(GtkWidget *w, GdkEvent *e, struct modify_key_ctx *ctx)
 {
     gchar *YouPressed;
 
-    ctx->mk_key_chosen = e->keyval;
-    YouPressed = g_strdup_printf("You pressed : %s\nClick OK to keep this key.", gdk_keyval_name(e->keyval));
+    guint keyval = gdk_key_event_get_keyval(e);
+    ctx->mk_key_chosen = keyval;
+    YouPressed = g_strdup_printf("You pressed : %s\nClick OK to keep this key.", gdk_keyval_name(keyval));
     gtk_label_set_text(GTK_LABEL(ctx->label), YouPressed);
     g_free(YouPressed);
 }
@@ -2901,7 +2908,7 @@ static void Handle_Edit_Controls(GtkDialog *dialog, int response, gpointer data)
 
 }
 
-static void AcceptNewJoyKey(GtkWidget *w, GdkEventFocus *e, struct modify_key_ctx *ctx)
+static void AcceptNewJoyKey(GtkWidget *w, GdkEvent *e, struct modify_key_ctx *ctx)
 {
     gchar *YouPressed;
 
