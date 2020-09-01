@@ -2139,7 +2139,8 @@ static void OpenNdsDialog(GSimpleAction *action, GVariant *parameter, gpointer u
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_dsgba);
     gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(pFileSelection), pFilter_any);
 
-    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(pFileSelection), g_get_home_dir());
+    GError *error;
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(pFileSelection), g_file_new_for_path(g_get_home_dir()), &error);
 
     g_signal_connect(pFileSelection, "response", G_CALLBACK(Handle_OpenNds), NULL);
     gtk_native_dialog_show(GTK_NATIVE_DIALOG(pFileSelection));
