@@ -3524,8 +3524,10 @@ public:
     {
         usleep(1000);
         _updateDTools();
+#if 0
         while (gtk_events_pending())
             gtk_main_iteration();
+#endif
     }
 
 	// HUD uses this to show pause state

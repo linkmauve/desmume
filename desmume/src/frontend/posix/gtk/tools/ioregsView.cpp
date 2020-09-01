@@ -81,7 +81,7 @@ static reg_t *current_reg[2] = {NULL, NULL};
 #define BIT_COMBO_ADD(w, s) { \
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(__combo_tmp), s); }
 	
-#define BIT_COMBO_GET(w) (GTK_WIDGET(g_list_first(gtk_container_get_children(GTK_CONTAINER(_wl_[w])))->data))
+#define BIT_COMBO_GET(w) (gtk_widget_get_first_child(_wl_[w]))
 	
 #define BIT_COMBO_END(w) \
 	gtk_box_prepend(GTK_BOX(_wl_[w]), __combo_tmp); \
@@ -98,7 +98,7 @@ static void crea_REG_IME(int c)
 	CREA_END();
 }
 static void updt_REG_IME(int c) { gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Widgets_REG_IME[c][0]), MMU.reg_IME[c] ? 1 : 0); }
-static void dest_REG_IME(int c) { gtk_widget_destroy(Widgets_REG_IME[c][0]); }
+static void dest_REG_IME(int c) { /*gtk_widget_destroy(Widgets_REG_IME[c][0]);*/ }
 static u32 val_REG_IME(int c) { return MMU.reg_IME[c]; }
 
 /////////////////////////////// REG_IE ///////////////////////////////
@@ -149,7 +149,7 @@ static void updt_REG_IE(int c)
 static void dest_REG_IE(int c)
 {
 	int i;
-	for(i = 0; i < 24; i++) { INTERRUPT_SKIP(c); gtk_widget_destroy(Widgets_REG_IE[c][i]); }
+	for(i = 0; i < 24; i++) { INTERRUPT_SKIP(c); /*gtk_widget_destroy(Widgets_REG_IE[c][i]);*/ }
 }
 static u32 val_REG_IE(int c) { return MMU.reg_IE[c]; }
 
@@ -170,7 +170,7 @@ static void updt_REG_IF(int c)
 static void dest_REG_IF(int c)
 {
 	int i;
-	for(i = 0; i < 24; i++) { INTERRUPT_SKIP(c); gtk_widget_destroy(Widgets_REG_IF[c][i]); }
+	for(i = 0; i < 24; i++) { INTERRUPT_SKIP(c); /*gtk_widget_destroy(Widgets_REG_IF[c][i]);*/ }
 }
 static u32 val_REG_IF(int c) { return (c==0?MMU.gen_IF<0>():MMU.gen_IF<1>()); }
 
@@ -207,7 +207,7 @@ static void updt_REG_IPCFIFOCNT(int c)
 static void dest_REG_IPCFIFOCNT(int c)
 {
 	int i;
-	for(i = 0; i < 16; i++) { FIFOCNT_SKIP(c); gtk_widget_destroy(Widgets_REG_IPCFIFOCNT[c][i]); }
+	for(i = 0; i < 16; i++) { FIFOCNT_SKIP(c); /*gtk_widget_destroy(Widgets_REG_IPCFIFOCNT[c][i]);*/ }
 }
 static u32 val_REG_IPCFIFOCNT(int c) { return ((u16 *)(MMU.MMU_MEM[c][0x40]))[0x184>>1]; }
 
@@ -247,7 +247,7 @@ static void updt_POWER_CR(int c)
 static void dest_POWER_CR(int c)
 {
 	int i;
-	for(i = 0; i < POWER_CR_SIZE(c); i++) { POWER_CR_SKIP(c); gtk_widget_destroy(Widgets_POWER_CR[c][i]); }
+	for(i = 0; i < POWER_CR_SIZE(c); i++) { POWER_CR_SKIP(c); /*gtk_widget_destroy(Widgets_POWER_CR[c][i]);*/ }
 }
 static u32 val_POWER_CR(int c) { return ((u16 *)(MMU.MMU_MEM[c][0x40]))[0x304>>1]; }
 
@@ -324,7 +324,7 @@ static void updt_REG_SPICNT(int c)
 static void dest_REG_SPICNT(int c)
 {
 	int i;
-	for(i = 0; i < 16; i++) { REG_SPICNT_SKIP(c); gtk_widget_destroy(Widgets_REG_SPICNT[c][i]); }
+	for(i = 0; i < 16; i++) { REG_SPICNT_SKIP(c); /*gtk_widget_destroy(Widgets_REG_SPICNT[c][i]);*/ }
 }
 
 /////////////////////////////// LIST ///////////////////////////////
@@ -380,7 +380,7 @@ static void selected_reg(GtkWidget* widget, gpointer data)
 	guint active = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
 
 	if(current_reg[c]) current_reg[c]->destroy(c);
-	gtk_container_foreach(GTK_CONTAINER(mBox0[c]), _clearContainer, (gpointer)mBox0[c]);
+	//gtk_container_foreach(GTK_CONTAINER(mBox0[c]), _clearContainer, (gpointer)mBox0[c]);
 
 	current_reg[c] = (reg_t*)&(GET_REG_LIST(c)[active]);
 
@@ -422,9 +422,9 @@ static void _closeOne(GtkWidget *widget, gpointer data)
 	if(c == 0 && !CPUS[1]) close();
 	if(c == 1 && !CPUS[0]) close();
 
-	gtk_widget_destroy(mRegInfos[c]);
-	gtk_widget_destroy(mIoRegCombo[c]);
-	gtk_widget_destroy(mBox0[c]);
+//	gtk_widget_destroy(mRegInfos[c]);
+//	gtk_widget_destroy(mIoRegCombo[c]);
+//	gtk_widget_destroy(mBox0[c]);
 //	gtk_widget_destroy(mWin[c]);
 }
 
