@@ -1130,28 +1130,28 @@ static const char *toolbar =
 "  <requires lib='gtk+' version='3.24'/>"
 "  <object class='GtkBox' id='toolbar'>"
 "    <child>"
-"      <object class='GtkToolButton'>"
+"      <object class='GtkButton'>"
 "        <property name='label' translatable='yes'>_Open</property>"
 "        <property name='icon-name'>document-open</property>"
 "        <property name='action-name'>app.open</property>"
 "      </object>"
 "    </child>"
 "    <child>"
-"      <object class='GtkToolButton'>"
+"      <object class='GtkButton'>"
 "        <property name='label' translatable='yes'>_Run</property>"
 "        <property name='icon-name'>media-playback-start</property>"
 "        <property name='action-name'>app.run</property>"
 "      </object>"
 "    </child>"
 "    <child>"
-"      <object class='GtkToolButton'>"
+"      <object class='GtkButton'>"
 "        <property name='label' translatable='yes'>_Pause</property>"
 "        <property name='icon-name'>media-playback-pause</property>"
 "        <property name='action-name'>app.pause</property>"
 "      </object>"
 "    </child>"
 "    <child>"
-"      <object class='GtkToolButton'>"
+"      <object class='GtkButton'>"
 "        <property name='label' translatable='yes'>_Quit</property>"
 "        <property name='icon-name'>application-exit</property>"
 "        <property name='action-name'>app.quit</property>"
@@ -4128,6 +4128,8 @@ common_gtk_main(GApplication *app, gpointer user_data)
     g_signal_connect(G_OBJECT(pWindow), "destroy", G_CALLBACK(DoQuit), NULL);
     g_signal_connect(G_OBJECT(pWindow), "key_press_event", G_CALLBACK(Key_Press), NULL);
     g_signal_connect(G_OBJECT(pWindow), "key_release_event", G_CALLBACK(Key_Release), NULL);
+
+    gtk_widget_show(pWindow);
 
     /* Create the GtkBox */
     pBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
