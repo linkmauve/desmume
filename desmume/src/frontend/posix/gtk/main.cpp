@@ -2340,11 +2340,6 @@ static void ToggleSwapScreens(GSimpleAction *action, GVariant *parameter, gpoint
     g_simple_action_set_state(action, g_variant_new_boolean(value));
 }
 
-static int ConfigureDrawingArea(GtkWidget *widget, GdkEvent *event, gpointer data)
-{
-    return TRUE;
-}
-
 static inline void gpu_screen_to_rgb(u32* dst)
 {
     ColorspaceConvertBuffer555To8888Opaque<false, false>((const uint16_t *)GPU->GetDisplayInfo().masterNativeBuffer, dst, GPU_FRAMEBUFFER_NATIVE_WIDTH * GPU_FRAMEBUFFER_NATIVE_HEIGHT * 2);
@@ -2407,16 +2402,8 @@ static inline void drawBottomScreen(cairo_t* cr, u32* buf, gint w, gint h, gint 
 }
 
 /* Drawing callback */
-static gboolean ExposeDrawingArea (GtkWidget *widget, GdkEvent *event, gpointer data)
+static void ExposeDrawingArea(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer data)
 {
-	GdkWindow* window = gtk_widget_get_window(widget);
-	gint daW, daH;
-#if GTK_CHECK_VERSION(2,24,0)
-	daW = gdk_window_get_width(window);
-	daH = gdk_window_get_height(window);
-#else
-	gdk_drawable_get_size(window, &daW, &daH);
-#endif
 	u32* fbuf = video->GetDstBufferPtr();
 	gint dstW = video->GetDstWidth();
 	gint dstH = video->GetDstHeight();
@@ -2434,16 +2421,13 @@ static gboolean ExposeDrawingArea (GtkWidget *widget, GdkEvent *event, gpointer 
 	}
 
 	// Calculate scale to fit display area to window
-	gfloat hratio = (gfloat)daW / (gfloat)imgW;
-	gfloat vratio = (gfloat)daH / (gfloat)imgH;
+	gfloat hratio = (gfloat)width / (gfloat)imgW;
+	gfloat vratio = (gfloat)height / (gfloat)imgH;
 	hratio = MIN(hratio, vratio);
 	vratio = hratio;
 
-	GdkDrawingContext *context = gdk_window_begin_draw_frame(window, gdk_window_get_clip_region(window));
-	cairo_t* cr = gdk_drawing_context_get_cairo_context(context);
-
 	// Scale to window size at center of area
-	cairo_translate(cr, daW / 2, daH / 2);
+	cairo_translate(cr, width / 2, height / 2);
 	cairo_scale(cr, hratio, vratio);
 	// Rotate area
 	cairo_rotate(cr, M_PI / 180 * nds_screen.rotation_angle);
@@ -2466,10 +2450,7 @@ static gboolean ExposeDrawingArea (GtkWidget *widget, GdkEvent *event, gpointer 
 	cairo_matrix_scale(&nds_screen.touch_matrix, (double)dstScale / 2, (double)dstScale / 2);
 	cairo_matrix_invert(&nds_screen.touch_matrix);
 
-	gdk_window_end_draw_frame(window, context);
 	draw_count++;
-
-	return TRUE;
 }
 
 static void RedrawScreen() {
@@ -4532,10 +4513,8 @@ common_gtk_main(GApplication *app, gpointer user_data)
                      G_CALLBACK(Stylus_Release), NULL);
     g_signal_connect(G_OBJECT(pDrawingArea), "motion_notify_event",
                      G_CALLBACK(Stylus_Move), NULL);
-    g_signal_connect(G_OBJECT(pDrawingArea), "draw",
-                     G_CALLBACK(ExposeDrawingArea), NULL ) ;
-    g_signal_connect(G_OBJECT(pDrawingArea), "configure_event",
-                     G_CALLBACK(ConfigureDrawingArea), NULL ) ;
+    gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(pDrawingArea),
+                                   ExposeDrawingArea, NULL, NULL);
 
     /* Status bar */
     pStatusBar = gtk_statusbar_new();
