@@ -4119,6 +4119,16 @@ common_gtk_main(GApplication *app, gpointer user_data)
     g_printerr("Using %d threads for video filter.\n", CommonSettings.num_cores);
     video = new VideoFilter(256, 384, VideoFilterTypeID_None, CommonSettings.num_cores);
 
+    /* Create the menu, must be done before creating the window. */
+    GtkBuilder *builder = gtk_builder_new_from_string(menu_builder, -1);
+    GMenuModel *menubar = G_MENU_MODEL(gtk_builder_get_object(builder, "menubar"));
+    GMenuModel *open_recent_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "open_recent"));
+    savestates_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "savestates"));
+    loadstates_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "loadstates"));
+    gtk_application_set_menubar(GTK_APPLICATION(app), menubar);
+    //g_object_unref(builder);
+    pApp = GTK_APPLICATION(app);
+
     /* Create the window */
     pWindow = gtk_application_window_new(GTK_APPLICATION(app));
     gtk_window_set_title(GTK_WINDOW(pWindow), "DeSmuME");
@@ -4136,7 +4146,7 @@ common_gtk_main(GApplication *app, gpointer user_data)
     gtk_window_set_child(GTK_WINDOW(pWindow), pBox);
 
     /* Create the toolbar */
-    GtkBuilder *builder = gtk_builder_new_from_string(toolbar, -1);
+    builder = gtk_builder_new_from_string(toolbar, -1);
     pToolBar = GTK_WIDGET(gtk_builder_get_object(builder, "toolbar"));
     gtk_box_append(GTK_BOX(pBox), pToolBar);
     g_object_unref(builder);
@@ -4425,14 +4435,7 @@ common_gtk_main(GApplication *app, gpointer user_data)
     nds_screen.swap = config.view_swap;
     g_simple_action_set_state(G_SIMPLE_ACTION(g_action_map_lookup_action(G_ACTION_MAP(app), "swapscreens")), g_variant_new_boolean(config.view_swap));
 
-    builder = gtk_builder_new_from_string(menu_builder, -1);
-    GMenuModel *menubar = G_MENU_MODEL(gtk_builder_get_object(builder, "menubar"));
-    GMenuModel *open_recent_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "open_recent"));
-    savestates_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "savestates"));
-    loadstates_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "loadstates"));
-    gtk_application_set_menubar(GTK_APPLICATION(app), menubar);
-    g_object_unref(builder);
-	pApp = GTK_APPLICATION(app);
+    pApp = GTK_APPLICATION(app);
 
     GtkRecentManager *manager = gtk_recent_manager_get_default();
     GList *items = gtk_recent_manager_get_items(manager);
