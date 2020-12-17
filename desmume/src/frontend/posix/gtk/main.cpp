@@ -2546,79 +2546,38 @@ static gboolean rotoscaled_touchpos(gint x, gint y, gboolean start)
     return FALSE;
 }
 
-static gboolean Stylus_Move(GtkWidget *w, GdkEvent *e, gpointer data)
+static void Stylus_Move(GtkEventControllerMotion *controller, double x, double y, gpointer user_data)
 {
-    GdkModifierType state;
-    gint x,y;
-
-    if(click) {
-#if 0
-        if(e->is_hint)
-            gdk_window_get_device_position(gtk_widget_get_window(w), gdk_event_get_device(e), &x, &y, &state);
-        else {
-#endif
-            double x_double, y_double;
-            gdk_event_get_position(e, &x_double, &y_double);
-            x = (gint)x_double;
-            y = (gint)y_double;
-            state = gdk_event_get_modifier_state(e);
-#if 0
-        }
-#endif
-
-        if(state & GDK_BUTTON1_MASK) {
 #ifdef HAVE_LIBAGG
-            if (HudEditorMode) {
-                rotoscaled_hudedit(x, y, FALSE);
-            } else {
+    if (HudEditorMode) {
+        rotoscaled_hudedit(x, y, FALSE);
+    } else {
 #else
-            {
+    {
 #endif
-                rotoscaled_touchpos(x, y, FALSE);
-            }
-        }
+        rotoscaled_touchpos(x, y, FALSE);
     }
-
-    return TRUE;
 }
 
-static gboolean Stylus_Press(GtkWidget * w, GdkEvent * e,
-                             gpointer data)
+static void Stylus_Press(GtkGestureClick *gesture, int n_press, double x, double y, gpointer data)
 {
-#if 0
-    if (e->button == 3) {
-        GtkWidget * pMenu = gtk_menu_item_get_submenu ( GTK_MENU_ITEM(
-                    gtk_ui_manager_get_widget (ui_manager, "/MainMenu/ViewMenu")));
-        gtk_menu_popup(GTK_MENU(pMenu), NULL, NULL, NULL, NULL, 3, e->time);
-    }
-#endif
-
-    if (gdk_button_event_get_button(e) == 1) {
-        GdkModifierType state = gdk_event_get_modifier_state(e);
-        if(state & GDK_BUTTON1_MASK) {
-            double x, y;
-            gdk_event_get_position(e, &x, &y);
 #ifdef HAVE_LIBAGG
-            if (HudEditorMode) {
-                click = rotoscaled_hudedit(x, y, TRUE);
-            } else
+    if (HudEditorMode) {
+        click = rotoscaled_hudedit(x, y, TRUE);
+    } else
 #endif
-            if (desmume_running()) {
-                click = rotoscaled_touchpos(x, y, TRUE);
-            }
-        }
+    if (desmume_running()) {
+        click = rotoscaled_touchpos(x, y, TRUE);
     }
-
-    return TRUE;
 }
-static gboolean Stylus_Release(GtkWidget *w, GdkEvent *e, gpointer data)
+
+static void Stylus_Release(GtkGestureClick *gesture, int n_press, double x, double y, gpointer data)
 {
 #ifdef HAVE_LIBAGG
     HudClickRelease(&Hud);
 #endif
     if(click) NDS_releaseTouch();
     click = FALSE;
-    return TRUE;
 }
 
 static void loadgame(int num){
@@ -4502,17 +4461,18 @@ common_gtk_main(GApplication *app, gpointer user_data)
 
     gtk_box_append(GTK_BOX(pBox), pDrawingArea);
 
-    gtk_widget_set_events(pDrawingArea,
-                          GDK_EXPOSURE_MASK | GDK_LEAVE_NOTIFY_MASK |
-                          GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK |
-                          GDK_POINTER_MOTION_MASK | GDK_KEY_PRESS_MASK );
-
-    g_signal_connect(G_OBJECT(pDrawingArea), "button_press_event",
+    GtkGesture *stylus_click = gtk_gesture_click_new();
+    g_signal_connect(G_OBJECT(stylus_click), "pressed",
                      G_CALLBACK(Stylus_Press), NULL);
-    g_signal_connect(G_OBJECT(pDrawingArea), "button_release_event",
+    g_signal_connect(G_OBJECT(stylus_click), "released",
                      G_CALLBACK(Stylus_Release), NULL);
-    g_signal_connect(G_OBJECT(pDrawingArea), "motion_notify_event",
+    gtk_widget_add_controller(pDrawingArea, GTK_EVENT_CONTROLLER(stylus_click));
+
+    GtkEventController *stylus_motion = gtk_event_controller_motion_new();
+    g_signal_connect(G_OBJECT(stylus_motion), "motion",
                      G_CALLBACK(Stylus_Move), NULL);
+    gtk_widget_add_controller(pDrawingArea, stylus_motion);
+
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(pDrawingArea),
                                    ExposeDrawingArea, NULL, NULL);
 
